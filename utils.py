@@ -89,3 +89,6 @@ def watershed_segmentation(image_path, min_distance):
     plt.axis('off')
     plt.show()
 
+
+
+# function of kmeans
