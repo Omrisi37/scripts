@@ -91,4 +91,4 @@ def watershed_segmentation(image_path, min_distance):
 
 
 
-# function of kmeans
+# function of kmeans - todo
