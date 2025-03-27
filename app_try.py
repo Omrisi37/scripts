@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import hashlib
 import streamlit_authenticator as stauth
 from datetime import datetime
 import yaml
@@ -9,46 +8,52 @@ from yaml.loader import SafeLoader
 # ========================
 # USER AUTHENTICATION SETUP
 # ========================
-# Using a YAML file for credentials (safer)
+
+# Hash passwords before using them
+hashed_passwords = stauth.Hasher(["Lab123!"]).generate()
+
+# Define user credentials
 users = {
     "usernames": {
         "researcher1": {
             "email": "r1@lab.com",
             "name": "Dr. Smith",
-            "password": stauth.Hasher(["Lab123!"]).generate()[0]
+            "password": hashed_passwords[0]  # Proper hashed password
         }
     }
 }
 
+# Authentication setup
 authenticator = stauth.Authenticate(
-    users,
-    "lab_app_cookie",
-    "auth_key",
+    credentials=users,
+    cookie_name="lab_app_cookie",
+    key="auth_key",
     cookie_expiry_days=1
 )
 
+# Login form
 name, authentication_status, username = authenticator.login("Login", "main")
 
 if authentication_status:
     authenticator.logout("Logout", "sidebar")
     st.sidebar.title(f"Welcome {name}")
-    
+
     # ========================
     # FORM SECTIONS
     # ========================
     with st.form("procedure_settings"):
         st.subheader("Procedure - Settings")
         num = st.text_input("#Num", "1-Infinity")
-        date = st.date_input("Date")
+        date = st.date_input("Date", datetime.today())  # Default to today
         labeling = st.text_input("Labeling")
         protein_type = st.selectbox("Protein type", ["Type A", "Type B", "Type C"])
         concentration = st.number_input("Concentration [wt/wt%]")
         submit_settings = st.form_submit_button("Save Settings")
 
     with st.form("physical_treatments"):
-        st.subheader("Procedure - Physical treatments")
+        st.subheader("Procedure - Physical Treatments")
         right_valve = st.number_input("Right valve [bar]", value=0.0)
-        left_valve = st.number_input("Left valve 2 [bar]", value=0.0)
+        left_valve = st.number_input("Left valve [bar]", value=0.0)
         temp_after_HPH = st.number_input("Temp after HPH [°C]", value=0.0)
         HPH_fraction = st.number_input("HPH fraction [%]", value=0.0)
         acid_name = st.text_input("Acid name")
@@ -69,11 +74,11 @@ if authentication_status:
     if submit_settings or submit_physical or submit_hydrolyzing:
         if 'protocol_data' not in st.session_state:
             st.session_state.protocol_data = []
-        
+
         st.session_state.protocol_data.append({
             "Procedure Settings": {
                 "Num": num,
-                "Date": date.strftime("%Y-%m-%d"),
+                "Date": date.strftime("%Y-%m-%d"),  # Format date correctly
                 "Labeling": labeling,
                 "Protein Type": protein_type,
                 "Concentration": concentration
@@ -94,18 +99,21 @@ if authentication_status:
             }
         })
         st.success("Data saved successfully!")
-    
+
     # Export to Excel
     if st.button("Export to Excel"):
-        df = pd.DataFrame(st.session_state.protocol_data)
-        df.to_excel("protocol_data.xlsx", index=False)
-        with open("protocol_data.xlsx", "rb") as f:
-            st.download_button(
-                label="Download Excel file",
-                data=f,
-                file_name="protocol_data.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            )
+        if 'protocol_data' in st.session_state and st.session_state.protocol_data:
+            df = pd.DataFrame(st.session_state.protocol_data)
+            df.to_excel("protocol_data.xlsx", index=False)
+            with open("protocol_data.xlsx", "rb") as f:
+                st.download_button(
+                    label="Download Excel file",
+                    data=f,
+                    file_name="protocol_data.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+        else:
+            st.error("No data available for export.")
 
 elif authentication_status is False:
     st.error("Invalid credentials")
