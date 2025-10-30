@@ -5,7 +5,9 @@ import ipywidgets as widgets
 from IPython.display import display, clear_output
 import io
 import plotly.io as pio 
-
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import pearsonr
 # ==============================================================================
 #  פונקציה 1: היגיון הליבה (ה"מנוע")
 # ==============================================================================
