@@ -269,3 +269,89 @@ def plot_from_path(file_paths, x_col, y_cols):
     
     # 6. החזרת הגרף!
     return fig
+
+
+
+# פונקציה נוספת - חישוב קורלציה וגרפים
+
+def plot_correlation(file_path, col1_name, col2_name):
+    """
+    מחשב ומציג גרף קורלציה (פירסון) בין שתי עמודות.
+    כולל גרף פיזור, קו רגרסיה, רווח סמך, ומדדי הקורלציה.
+
+    Args:
+        file_path (str): נתיב מלא לקובץ ה-CSV.
+        col1_name (str): שם העמודה הראשונה (תופיע בציר X).
+        col2_name (str): שם העמודה השנייה (תופיע בציר Y).
+
+    Returns:
+        matplotlib.figure.Figure: אובייקט הגרף (fig) שניתן להציג.
+    """
+    
+    # 1. טעינת הנתונים
+    try:
+        df = pd.read_csv(file_path, encoding='latin1')
+    except FileNotFoundError:
+        print(f"שגיאה: הקובץ לא נמצא בנתיב {file_path}")
+        return None
+    except Exception as e:
+        print(f"שגיאה בטעינת הקובץ: {e}")
+        return None
+
+    # 2. בדיקת קיום העמודות
+    if col1_name not in df.columns or col2_name not in df.columns:
+        print(f"שגיאה: אחת העמודות ('{col1_name}', '{col2_name}') לא קיימת בקובץ.")
+        return None
+        
+    # 3. ניקוי נתונים חסרים (NaN) - חובה עבור קורלציה
+    #    נשמיט שורות שבהן *אחת* מהעמודות הרלוונטיות חסרה
+    clean_df = df[[col1_name, col2_name]].dropna()
+    
+    if clean_df.empty:
+        print("שגיאה: לא נשארו נתונים תקפים לאחר ניקוי ערכים חסרים.")
+        return None
+        
+    col1 = clean_df[col1_name]
+    col2 = clean_df[col2_name]
+
+    # 4. חישוב הקורלציה
+    corr, p_value = pearsonr(col1, col2)
+    
+    # 5. יצירת הגרף
+    #    ניצור אובייקט Figure ו-Axis של Matplotlib
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    #    זו פונקציית הקסם של Seaborn
+    sns.regplot(
+        x=col1,
+        y=col2,
+        ax=ax,  # מציין ל-Seaborn לצייר על ה-Axis שיצרנו
+        line_kws={"color": "red", "lw": 2}, # צובע את קו הרגרסיה באדום
+        scatter_kws={"alpha": 0.6} # הופך את הנקודות למעט שקופות
+    )
+    
+    # 6. הוספת הטקסט האינפורמטיבי על הגרף
+    #    נבנה את מחרוזת הטקסט
+    text_str = f"Pearson's r: {corr:.3f}\np-value: {p_value:.3f}"
+    
+    #    נוסיף את הטקסט בפינה השמאלית העליונה של הגרף
+    ax.text(
+        0.05, 0.95,  # מיקום: 5% מהשמאל, 95% מהתחתית (כלומר, למעלה)
+        text_str,
+        transform=ax.transAxes,  # מגדיר שהמיקום יחסי לגודל הגרף
+        fontsize=12,
+        verticalalignment='top',
+        bbox=dict(boxstyle='round,pad=0.5', facecolor='white', alpha=0.7) # קופסה לבנה לרקע
+    )
+    
+    # 7. עיצוב סופי
+    ax.set_title(f"Correlation: {col1_name} vs {col2_name}", fontsize=16)
+    ax.set_xlabel(col1_name, fontsize=12)
+    ax.set_ylabel(col2_name, fontsize=12)
+    ax.grid(True, linestyle='--', alpha=0.6) # מוסיף רשת (גריד)
+    
+    print(f"Pearson's correlation (r): {corr:.3f}")
+    print(f"p-value: {p_value:.3f}")
+
+    # 8. החזרת אובייקט הגרף
+    return fig
