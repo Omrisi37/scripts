@@ -177,3 +177,95 @@ def launch_interactive_plotter():
     ])
 
     display(gui_layout)
+
+
+
+
+# פונקציה מס 2 גישה פשוטה יותר
+
+# --- הוסף את זה לקובץ OS_plots.py שלך ---
+
+import plotly.graph_objects as go
+import pandas as pd
+import plotly.io as pio
+
+def plot_from_path(file_paths, x_col, y_cols):
+    """
+    יוצר גרף פלוטלי מנתיבי קבצים ושמות עמודות.
+    פשוט וקל - בלי GUI.
+    
+    Args:
+        file_paths (str or list): נתיב לקובץ בודד, או רשימה של שני נתיבים.
+        x_col (str): שם עמודת ציר ה-X.
+        y_cols (str or list): שם עמודת ציר ה-Y, או רשימה של שמות.
+
+    Returns:
+        plotly.graph_objects.Figure: אובייקט הגרף (fig) שניתן להציג.
+    """
+    
+    # 1. הגדרת סביבת התצוגה של Colab (ליתר ביטחון)
+    pio.renderers.default = 'colab'
+    
+    df = None
+    
+    # 2. ודא ש-file_paths הוא רשימה
+    if isinstance(file_paths, str):
+        file_paths = [file_paths]
+
+    if not (1 <= len(file_paths) <= 2):
+        print("שגיאה: 'file_paths' חייב להיות נתיב אחד או רשימה של שני נתיבים.")
+        return None
+
+    # 3. טעינת הנתונים
+    try:
+        if len(file_paths) == 1:
+            df = pd.read_csv(file_paths[0], encoding='latin1')
+        elif len(file_paths) == 2:
+            df1 = pd.read_csv(file_paths[0], encoding='latin1')
+            df2 = pd.read_csv(file_paths[1], encoding='latin1')
+            
+            if x_col not in df1.columns or x_col not in df2.columns:
+                print(f"שגיאה: עמודת X '{x_col}' לא קיימת בשני הקבצים.")
+                return None
+            
+            df = pd.merge(df1, df2, on=x_col, how='inner')
+            
+    except FileNotFoundError as e:
+        print(f"שגיאה: הקובץ לא נמצא. {e}")
+        return None
+    except Exception as e:
+        print(f"שגיאה בטעינה או מיזוג הקבצים: {e}")
+        return None
+
+    # 4. הכנת הנתונים לגרף
+    if isinstance(y_cols, str):
+        y_cols = [y_cols]
+
+    traces = []
+    # ודא שהעמודות קיימות ב-DataFrame
+    valid_y_cols = [col for col in y_cols if col in df.columns]
+    
+    if not valid_y_cols:
+        print(f"שגיאה: אף אחת מעמודות ה-Y שצוינו ({y_cols}) לא נמצאה בנתונים.")
+        return None
+
+    for y_col in valid_y_cols:
+        traces.append(go.Bar(
+            x=df[x_col], 
+            y=df[y_col], 
+            name=y_col,
+            text=df[y_col].round(2),
+            textposition='outside'
+        ))
+
+    # 5. יצירת הגרף (עם go.Figure רגיל!)
+    fig = go.Figure(data=traces)
+    fig.update_layout(
+        title=f"גרף עמודות: {', '.join(valid_y_cols)} מול {x_col}",
+        xaxis_title=x_col,
+        yaxis_title="Value",
+        hovermode='x unified'
+    )
+    
+    # 6. החזרת הגרף!
+    return fig
