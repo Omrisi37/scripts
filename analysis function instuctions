@@ -1,0 +1,40 @@
+# קובץ הנחיות שימוש בפונקציות
+# 1.בפונקציה 2שימוש 
+
+# עכשיו אתה יכול לייבא את הפונקציה מהקובץ שלך
+# (בהנחה שהקובץ שלך נקרא plot_utils.py)
+from OS_plots import plot_from_path
+import pandas as pd
+df = pd.read_csv('', encoding='latin1')
+file_path = ''  # <-- שנה ל-data.csv או לשם הקובץ שלך
+print(df.columns)
+#    אלה העמודות שאתה רוצה לשרטט
+x_axis_name = "" 
+y_axis_names = ["", ""]
+
+# 3. קרא לפונקציה ושמור את התוצאה
+#    הפונקציה תחזיר אובייקט fig
+fig_result = plot_from_path(file_path, x_axis_name, y_axis_names)
+
+# 4. הקסם: פשוט שים את המשתנה כדבר האחרון בתא
+#    Colab יזהה שזה גרף ויציג אותו אוטומטית.
+fig_result
+
+
+# שימוש פונקציה 3
+# 1. ייבא את הפונקציה החדשה מהמודול שלך
+from OS_plots import plot_correlation
+
+# 2. הגדר את המשתנים שלך
+file_path = "/content/data.csv"  # <-- שנה לשם הקובץ שלך
+column_1 = "Firmness (N)"
+column_2 = "Ranking pound cake"
+
+# 3. קרא לפונקציה ושמור את התוצאה
+#    הפונקציה תחזיר אובייקט fig של Matplotlib
+fig_corr = plot_correlation(file_path, column_1, column_2)
+
+# 4. הצג את הגרף
+#    (ב-Colab, אין צורך ב-plt.show() אם ה-fig הוא הדבר האחרון בתא,
+#     אבל זו הדרך הנכונה והמפורשת להציג אותו)
+plt.show()
