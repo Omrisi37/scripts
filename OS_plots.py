@@ -4,7 +4,7 @@ import numpy as np
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import io
-import plotly.io as pio # הוספנו את הייבוא הזה
+import plotly.io as pio 
 
 # ==============================================================================
 #  פונקציה 1: היגיון הליבה (ה"מנוע")
@@ -71,9 +71,8 @@ def create_plot_from_dfs(dataframes, x_col, y_cols):
 
 def launch_interactive_plotter():
     
-    # --- התיקון עבור Google Colab ---
+    # הגדרה עבור Google Colab
     pio.renderers.default = 'colab'
-    # ---------------------------------
     
     app_data = {'dfs': []}
 
@@ -150,7 +149,9 @@ def launch_interactive_plotter():
             
             if fig:
                 with output_area:
-                    fig.show()
+                    # --- התיקון הקריטי כאן ---
+                    display(fig) 
+                    # -------------------------
                 status_label.value = "Plot created successfully."
             else:
                 status_label.value = "Error creating plot. Check console."
