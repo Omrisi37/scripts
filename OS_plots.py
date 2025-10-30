@@ -1,28 +1,17 @@
-
-
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
 import ipywidgets as widgets
 from IPython.display import display, clear_output
 import io
+import plotly.io as pio # הוספנו את הייבוא הזה
 
 # ==============================================================================
 #  פונקציה 1: היגיון הליבה (ה"מנוע")
 # ==============================================================================
 
 def create_plot_from_dfs(dataframes, x_col, y_cols):
-    """
-    Creates an interactive Plotly bar chart from a list of one or two DataFrames.
     
-    Args:
-        dataframes: A list containing one or two pandas DataFrames.
-        x_col: The string name of the column for the x-axis.
-        y_cols: A list of strings for the y-axis column(s).
-
-    Returns:
-        A Plotly Figure object (fig)
-    """
     df = None
     
     if not isinstance(dataframes, list) or len(dataframes) not in [1, 2]:
@@ -41,7 +30,6 @@ def create_plot_from_dfs(dataframes, x_col, y_cols):
         
         df = pd.merge(df1, df2, on=x_col, how='inner')
 
-    # --- יצירת הגרף ---
     if isinstance(y_cols, str):
         y_cols = [y_cols]
 
@@ -82,16 +70,13 @@ def create_plot_from_dfs(dataframes, x_col, y_cols):
 # ==============================================================================
 
 def launch_interactive_plotter():
-    """
-    When called in a Jupyter environment, this function displays
-    a full GUI for uploading files and generating the plot.
-    """
     
-    # 1. הגדרת משתנה לאחסון הנתונים
-    #    אנו משתמשים במילון כדי שפונקציות מקוננות יוכלו לשנות אותו
+    # --- התיקון עבור Google Colab ---
+    pio.renderers.default = 'colab'
+    # ---------------------------------
+    
     app_data = {'dfs': []}
 
-    # 2. יצירת הווידג'טים
     file_uploader = widgets.FileUpload(
         accept='.csv',
         multiple=True,
@@ -104,15 +89,13 @@ def launch_interactive_plotter():
     status_label = widgets.Label(value="Please upload 1 or 2 CSV files.")
     output_area = widgets.Output()
 
-    # 3. הגדרת הלוגיקה (פונקציות מקוננות)
     def on_file_upload(change):
-        """מופעל כאשר קבצים מועלים."""
         x_axis_selector.options = []
         y_axis_selector.options = []
         x_axis_selector.disabled = True
         y_axis_selector.disabled = True
         plot_button.disabled = True
-        app_data['dfs'] = []  # גישה למשתנה מהמילון
+        app_data['dfs'] = []
         output_area.clear_output()
         
         uploaded_files = file_uploader.value
@@ -128,7 +111,7 @@ def launch_interactive_plotter():
                 df = pd.read_csv(io.BytesIO(content), encoding='latin1')
                 dfs.append(df)
             
-            app_data['dfs'] = dfs  # שמירת ה-DataFrames
+            app_data['dfs'] = dfs
             
             if len(dfs) == 1:
                 all_cols = sorted(list(dfs[0].columns))
@@ -152,7 +135,6 @@ def launch_interactive_plotter():
             status_label.value = f"Error processing file: {e}"
 
     def on_plot_button_clicked(b):
-        """מופעל בלחיצה על כפתור 'Create Plot'."""
         output_area.clear_output()
         status_label.value = "Generating plot..."
         
@@ -164,7 +146,6 @@ def launch_interactive_plotter():
             return
             
         try:
-            # קריאה לפונקציית הליבה!
             fig = create_plot_from_dfs(app_data['dfs'], x_col, y_cols)
             
             if fig:
@@ -179,11 +160,9 @@ def launch_interactive_plotter():
             with output_area:
                 print(f"An unexpected error occurred: {e}")
 
-    # 4. חיבור הלוגיקה לווידג'טים
     file_uploader.observe(on_file_upload, names='value')
     plot_button.on_click(on_plot_button_clicked)
 
-    # 5. הרכבת ה-GUI והצגתו
     gui_layout = widgets.VBox([
         file_uploader,
         x_axis_selector,
