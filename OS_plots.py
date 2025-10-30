@@ -52,7 +52,11 @@ def create_plot_from_dfs(dataframes, x_col, y_cols):
         print("Error: No valid Y-axis columns to plot.")
         return None
 
-    fig = go.Figure(data=traces)
+    # ***************************************************************
+    # *** הנה התיקון הקריטי! שימוש ב-FigureWidget ***
+    fig = go.FigureWidget(data=traces)
+    # ***************************************************************
+
     fig.update_layout(
         title=f"Bar Chart: {', '.join(valid_y_cols)} vs {x_col}",
         xaxis_title=x_col,
@@ -66,7 +70,7 @@ def create_plot_from_dfs(dataframes, x_col, y_cols):
 
 
 # ==============================================================================
-#  פונקציה 2: מפעיל ה-GUI
+#  פונקציה 2: מפעיל ה-GUI (נשארת זהה)
 # ==============================================================================
 
 def launch_interactive_plotter():
@@ -149,9 +153,8 @@ def launch_interactive_plotter():
             
             if fig:
                 with output_area:
-                    # --- התיקון הקריטי כאן ---
+                    # שיטת התצוגה נשארת זהה
                     display(fig) 
-                    # -------------------------
                 status_label.value = "Plot created successfully."
             else:
                 status_label.value = "Error creating plot. Check console."
